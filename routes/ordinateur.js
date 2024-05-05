@@ -1,22 +1,38 @@
 const express = require("express");
 const router = express.Router();
 const Ordinateur = require("../models/ordinateur");
+const multer = require("multer");
+filename='';
+const mystorage=multer.diskStorage({
+    destination: "./uploads",
+    filename:(res,file,redirect)=>{
+        let date = Date.now();
+        //image/png
+        let fl = date+"."+file.mimetype.split('/')[1];
+        redirect(null,fl);
+        filename=fl;
+    }
+
+})
+
+const upload= multer({storage:mystorage});
+
 const { body, validationResult } = require("express-validator");
 
 router.use(express.json());
 
 // Validation des données pour la création d'un ordinateur
 const createOrdinateurValidation = [
-    body("numserie").notEmpty().withMessage("Le numéro de série est obligatoire"),
-    body("mark").notEmpty().withMessage("La marque est obligatoire"),
+    body("numserie").notEmpty().withMessage("Le numéro de série est obligatoire").isNumeric().withMessage("Le prix doit être une valeur numérique"),
+    body("mark").notEmpty().withMessage("La marque est obligatoire").isString().withMessage("champs avec des lettre alphabetique seulement"),
     body("prix").isNumeric().withMessage("Le prix doit être une valeur numérique"),
-    body("couleur").notEmpty().withMessage("La couleur est obligatoire"),
+    body("couleur").notEmpty().withMessage("La couleur est obligatoire").isString().withMessage("champs avec des lettre alphabetique seulement"),
     body("type").notEmpty().withMessage("Le type est obligatoire")
 ];
 
 module.exports=createOrdinateurValidation;
 // Créer un nouvel ordinateur
-router.post("/create", createOrdinateurValidation, async (req, res) => {
+router.post("/create",  upload.any('image'), async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -25,7 +41,9 @@ router.post("/create", createOrdinateurValidation, async (req, res) => {
 
         const ordinateurData = req.body;
         const newOrdinateur = new Ordinateur(ordinateurData);
+        newOrdinateur.image=filename;
         const savedOrdinateur = await newOrdinateur.save();
+        filename='';
         res.status(201).send(savedOrdinateur);
     } catch (error) {
         console.error(error);

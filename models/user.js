@@ -9,7 +9,9 @@
     addresse:{type:String},
     telephone:{type:Number},
     mail:{type:String},
-    motpasse:{type:String}});
+    motpasse:{type:String},
+    image:{type:String}
+});
 
     
     module.exports=User;

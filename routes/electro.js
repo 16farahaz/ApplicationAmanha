@@ -1,6 +1,22 @@
 const express = require("express");
 const router = express.Router();
 const Electro = require("../models/electro");
+const multer = require("multer");
+filename='';
+const mystorage=multer.diskStorage({
+    destination: "./uploads",
+    filename:(res,file,redirect)=>{
+        let date = Date.now();
+        //image/png
+        let fl = date+"."+file.mimetype.split('/')[1];
+        redirect(null,fl);
+        filename=fl;
+    }
+
+})
+
+const upload= multer({storage:mystorage});
+
 const { body, validationResult } = require("express-validator");
 
 router.use(express.json());
@@ -10,13 +26,14 @@ const createElectroValidation = [
     body("numserie").notEmpty().isNumeric().withMessage("Le numéro de série est requis"),
     body("mark").notEmpty().withMessage("La marque est requise").isString().withMessage("eleminer les caractere speciaux et laisse les caractéres alphabetiques "),
     body("prix").isNumeric().withMessage("Le prix doit être numérique"),
-    body("couleur").notEmpty().withMessage("La couleur est requise"),
+    body("couleur").notEmpty().withMessage("La couleur est requise").isString().withMessage("juste des lettre alphabetique s'il vous plais "),
     body("puissance").isNumeric().withMessage("La puissance doit être numérique"),
-    body("poids").isNumeric().withMessage("Le poids doit être numérique")
+    body("poids").isNumeric().withMessage("Le poids doit être numérique"),
+  
 ];
 module.exports=createElectroValidation;
 // Créer un nouvel Electro
-router.post("/create", createElectroValidation, async (req, res) => {
+router.post("/create", upload.any('image'), createElectroValidation,async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -25,7 +42,9 @@ router.post("/create", createElectroValidation, async (req, res) => {
 
         const electroData = req.body;
         const newElectro = new Electro(electroData);
+        newElectro.image=filename;
         const savedElectro = await newElectro.save();
+        filename='';
         res.status(201).send(savedElectro);
     } catch (error) {
         console.error(error);
@@ -74,25 +93,26 @@ router.delete("/del/:id", async (req, res) => {
     }
 });
 
-// Mettre à jour un Electro par son ID
-router.put("/up/:id", createElectroValidation, async (req, res) => {
+router.put("/up/:id", createElectroValidation,async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
-
         const electroId = req.params.id;
         const newData = req.body;
         const updatedElectro = await Electro.findByIdAndUpdate(electroId, newData, { new: true });
+        
         if (!updatedElectro) {
             return res.status(404).send("Electro not found");
         }
+        
         res.send(updatedElectro);
     } catch (error) {
         console.error(error);
         res.status(500).send("Internal Server Error");
     }
 });
+
 
 module.exports = router;

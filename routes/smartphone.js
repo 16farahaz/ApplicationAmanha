@@ -1,6 +1,22 @@
 const express = require("express");
 const router = express.Router();
 const Smartphone = require("../models/smartphone");
+const multer = require("multer");
+filename='';
+const mystorage=multer.diskStorage({
+    destination: "./uploads",
+    filename:(res,file,redirect)=>{
+        let date = Date.now();
+        //image/png
+        let fl = date+"."+file.mimetype.split('/')[1];
+        redirect(null,fl);
+        filename=fl;
+    }
+
+})
+
+const upload= multer({storage:mystorage});
+
 const { body, validationResult } = require("express-validator");
 
 router.use(express.json());
@@ -16,7 +32,7 @@ const createSmartphoneValidation = [
 module.exports =createSmartphoneValidation;
 
 // Créer un nouveau smartphone
-router.post("/create", createSmartphoneValidation, async (req, res) => {
+router.post("/create",  upload.any('image'), async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -25,7 +41,9 @@ router.post("/create", createSmartphoneValidation, async (req, res) => {
 
         const smartphoneData = req.body;
         const newSmartphone = new Smartphone(smartphoneData);
+        newSmartphone.image=filename;
         const savedSmartphone = await newSmartphone.save();
+        filename='';
         res.status(201).send(savedSmartphone);
     } catch (error) {
         console.error(error);

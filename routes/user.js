@@ -1,6 +1,22 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
+const multer = require("multer");
+filename='';
+const mystorage=multer.diskStorage({
+    destination: "./uploads",
+    filename:(res,file,redirect)=>{
+        let date = Date.now();
+        //image/png
+        let fl = date+"."+file.mimetype.split('/')[1];
+        redirect(null,fl);
+        filename=fl;
+    }
+
+})
+
+const upload= multer({storage:mystorage});
+
 const { body, validationResult } = require("express-validator");
 
 router.use(express.json());
@@ -23,7 +39,7 @@ module.exports = createUserValidation;
 
 
 // Create a new user
-router.post("/create", createUserValidation, async (req, res) => {
+router.post("/create",  upload.any('image'), async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -32,7 +48,9 @@ router.post("/create", createUserValidation, async (req, res) => {
 
         const userData = req.body;
         const newUser = new User(userData);
+        newUser.image=filename;
         const savedUser = await newUser.save();
+        filename='';
         res.status(201).send(savedUser);
     } catch (error) {
         console.error(error);

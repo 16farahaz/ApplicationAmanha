@@ -20,6 +20,10 @@ app.use('/electro',electroRoute);
 app.use('/ordinateur',ordinateurRoute);
 app.use('/smartphone',smartphoneRoute);
 
+// lien ll les files w tsawer akhw : ya3ni t7otou w ta3tih lid yafichilk ch7achtek 
+//b7okem ma7toutin lkol fi dossier upload
+app.use('/getimage',express.static('/uploads'))
+
 
 
 

@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
         prix:{type:Number},
         couleur:{type:String},
         puissance:{type:Number},
-        poids:{type:Number}
+        poids:{type:Number},
+        image:{type:String}
     });
     module.exports=Elctro;

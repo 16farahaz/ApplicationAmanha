@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
         mark:{type:String},
         prix:{type:Number},
         couleur:{type:String},
-        modele:{type:String}
+        modele:{type:String},
+        image:{type:String}
     });
     module.exports=Smartphone;
