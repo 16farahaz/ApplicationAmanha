@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const Ordinateur = require("../models/ordinateur");
 const multer = require("multer");
+const role = require('../config/role');
+const { InRole, ROLES } = require('../config/role');
+const { verifyJWT } = require('../middelware/jwtmiddleware');
 filename='';
 const mystorage=multer.diskStorage({
     destination: "./uploads",

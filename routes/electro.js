@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const Electro = require("../models/electro");
 const multer = require("multer");
+const role = require('../config/role');
+const { InRole, ROLES } = require('../config/role');
+const { verifyJWT } = require('../middelware/jwtmiddleware');
 filename='';
 const mystorage=multer.diskStorage({
     destination: "./uploads",
@@ -33,7 +36,7 @@ const createElectroValidation = [
 ];
 module.exports=createElectroValidation;
 // Créer un nouvel Electro
-router.post("/create", upload.any('image'), createElectroValidation,async (req, res) => {
+router.post("/create", verifyJWT,InRole(role.ROLES.ADMIN),upload.any('image'), createElectroValidation,async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -79,7 +82,7 @@ router.get("/getbyid/:id", async (req, res) => {
 });
 
 // Supprimer un Electro par son ID
-router.delete("/del/:id", async (req, res) => {
+router.delete("/del/:id",verifyJWT,InRole(role.ROLES.ADMIN), async (req, res) => {
     try {
         const electroId = req.params.id;
         const deletedElectro = await Electro.findByIdAndDelete(electroId);
@@ -93,7 +96,7 @@ router.delete("/del/:id", async (req, res) => {
     }
 });
 
-router.put("/up/:id", createElectroValidation,async (req, res) => {
+router.put("/up/:id",verifyJWT,InRole(role.ROLES.ADMIN), createElectroValidation,async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {

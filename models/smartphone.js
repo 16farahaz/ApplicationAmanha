@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
     const Smartphone=mongoose.model('Smartphone',{
-        numserie:{type:Number},
+        numserie:{type:Number,unique: true, required: true},
         mark:{type:String},
         prix:{type:Number},
         couleur:{type:String},

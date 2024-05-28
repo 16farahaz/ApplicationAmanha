@@ -3,6 +3,9 @@ const express = require("express");
 const router = express.Router();
 const Assurance = require("../models/Assurance");
 const { body, validationResult } = require("express-validator");
+const role = require('../config/role');
+const { InRole, ROLES } = require('../config/role');
+const { verifyJWT } = require('../middelware/jwtmiddleware');
 
 router.use(express.json());
 
@@ -18,7 +21,7 @@ const createAssuranceValidation = [
 module.exports= createAssuranceValidation;
 
 // Créer une nouvelle assurance
-router.post("/create", createAssuranceValidation, async (req, res) => {
+router.post("/create", verifyJWT,InRole(role.ROLES.ADMIN),createAssuranceValidation, async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -36,7 +39,7 @@ router.post("/create", createAssuranceValidation, async (req, res) => {
 });
 
 // Récupérer toutes les assurances
-router.get("/all", async (req, res) => {
+router.get("/all", verifyJWT,InRole(role.ROLES.ADMIN),async (req, res) => {
     try {
         const assurances = await Assurance.find();
         res.send(assurances);
@@ -47,7 +50,7 @@ router.get("/all", async (req, res) => {
 });
 
 // Récupérer une assurance par ID
-router.get("/get/:id", async (req, res) => {
+router.get("/get/:id", verifyJWT,InRole(role.ROLES.ADMIN),async (req, res) => {
     try {
         const assuranceId = req.params.id;
         const assurance = await Assurance.findById(assuranceId);
@@ -62,7 +65,7 @@ router.get("/get/:id", async (req, res) => {
 });
 
 // Supprimer une assurance par ID
-router.delete("/del/:id", async (req, res) => {
+router.delete("/del/:id",verifyJWT,InRole(role.ROLES.ADMIN), async (req, res) => {
     try {
         const assuranceId = req.params.id;
         const deletedAssurance = await Assurance.findByIdAndDelete(assuranceId);
@@ -77,7 +80,7 @@ router.delete("/del/:id", async (req, res) => {
 });
 
 // Mettre à jour une assurance par ID
-router.put("/up/:id", createAssuranceValidation, async (req, res) => {
+router.put("/up/:id", verifyJWT,InRole(role.ROLES.ADMIN),createAssuranceValidation, async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {

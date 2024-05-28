@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const Boutique = require("../models/Boutique");
 const { body, validationResult } = require("express-validator");
+const role = require('../config/role');
+const { InRole, ROLES } = require('../config/role');
+const { verifyJWT } = require('../middelware/jwtmiddleware');
 
 router.use(express.json());
 
@@ -14,7 +17,7 @@ const createBoutiqueValidation = [
 module.exports= createBoutiqueValidation;
 
 // Créer une nouvelle boutique
-router.post("/create", createBoutiqueValidation, async (req, res) => {
+router.post("/create",verifyJWT,InRole(role.ROLES.ADMIN), createBoutiqueValidation, async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -58,7 +61,7 @@ router.get("/get/:id", async (req, res) => {
 });
 
 // Supprimer une boutique par ID
-router.delete("/del/:id", async (req, res) => {
+router.delete("/del/:id",verifyJWT,InRole(role.ROLES.ADMIN), async (req, res) => {
     try {
         const boutiqueId = req.params.id;
         const deletedBoutique = await Boutique.findByIdAndDelete(boutiqueId);
@@ -73,7 +76,7 @@ router.delete("/del/:id", async (req, res) => {
 });
 
 // Mettre à jour une boutique par ID
-router.put("/up/:id", createBoutiqueValidation, async (req, res) => {
+router.put("/up/:id", verifyJWT,InRole(role.ROLES.ADMIN),createBoutiqueValidation, async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
