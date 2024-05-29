@@ -5,6 +5,7 @@ const User = require('../models/user');
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 const { checkEmailExists } = require('../middelware/verifymiddleware');
+const { ROLES } = require('../config/role');
 
 // Route pour vérifier si un email existe
 router.post('/checkEmail', async (req, res) => {
@@ -94,6 +95,48 @@ function generatePassword() {
     return Math.random().toString(36).slice(-8); // Simple mot de passe de 8 caractères
 }
 
+
+
+
+// Route to get all Achats based on user role
+router.get('/',verifyJWT,InRole(role.ROLES.ADMIN,ROLES.SIMPLE_USER,ROLES.USER), async (req, res) => {
+    try {
+        const user = req.user; // Assuming you have middleware to extract user information from the request
+
+        if (user.role === 'ADMIN') {
+            // Admin can see all Achats
+            const achats = await Achat.find();
+            res.json(achats);
+        } else {
+            // Regular user can only see their own Achats
+            const achats = await Achat.find({ user: user._id });
+            res.json(achats);
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Erreur Interne du Serveur');
+    }
+});
+
+module.exports = router;
+
+
+
+
+// Récupérer une achat par ID
+router.get("/get/:id", verifyJWT,InRole(role.ROLES.ADMIN,ROLES.SIMPLE_USER,ROLES.USER),async (req, res) => {
+    try {
+        const achatId = req.params.id;
+        const achat = await Achat.findById(achatId);
+        if (!achat) {
+            return res.status(404).send("order not found");
+        }
+        res.status(200).send(achat);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
+    }
+});
 
 
 
